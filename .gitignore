@@ -1,2 +1,4 @@
+.DS_STORE
+.vscode
 /config
 fetchdata.php
