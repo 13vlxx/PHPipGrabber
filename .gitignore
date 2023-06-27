@@ -1,4 +1,2 @@
 /config
-config.php
-/db
-ipgrabber.sql
+fetchdata.php
