@@ -12,8 +12,20 @@ require("./config/config.php");
 </head>
 
 <body>
+    <form action="" method="POST">
+        <input name="nom" type="text" placeholder="Enter your name">
+        <input name="submit" type="submit" value="fetch">
+    </form>
     <?php
     //* $_SERVER["REMOTE_ADDR"];
+    ?>
+</body>
+
+</html>
+
+<?php
+if (isset($_POST["submit"])) {
+    $nom = $_POST["nom"];
     $ip = ip;
     $data = unserialize(file_get_contents('http://www.geoplugin.net/php.gp?ip=' . $ip));
     $continent = $data["geoplugin_continentName"];
@@ -23,43 +35,39 @@ require("./config/config.php");
     $region = $data["geoplugin_regionName"];
     $latitude = $data["geoplugin_latitude"];
     $longitude = $data["geoplugin_longitude"];
-    ?>
-</body>
 
-</html>
+    try {
+        // Création d'une instance PDO
+        $pdo = new PDO(dsn, username, password);
 
-<?php
-try {
-    // Création d'une instance PDO
-    $pdo = new PDO(dsn, username, password);
+        // Configuration des options PDO
+        $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
-    // Configuration des options PDO
-    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+        // Requête d'insertion avec des paramètres
+        $sql = "INSERT INTO `data`(`nom`, `adresseIP`, `continent`, `pays`, `departement`, `ville`, `region`, `latitude`, `longitude`)
+        VALUES ( :nom, :ip, :continent, :pays, :departement, :ville, :region, :latitude, :longitude)";
 
-    $data = unserialize(file_get_contents('http://www.geoplugin.net/php.gp?ip=' . $ip));
+        // Préparation de la requête
+        $stmt = $pdo->prepare($sql);
 
-    // Requête d'insertion avec des paramètres
-    $sql = "INSERT INTO `data`(`adresseIP`, `continent`, `pays`, `departement`, `ville`, `region`, `latitude`, `longitude`) VALUES (:ip, :continent, :pays, :departement, :ville, :region, :latitude, :longitude)";
+        // Liaison des valeurs aux paramètres
+        $stmt->bindParam(':nom', $nom);
+        $stmt->bindParam(':ip', $ip);
+        $stmt->bindParam(':continent', $continent);
+        $stmt->bindParam(':pays', $country);
+        $stmt->bindParam(':departement', $departement);
+        $stmt->bindParam(':ville', $city);
+        $stmt->bindParam(':region', $region);
+        $stmt->bindParam(':latitude', $latitude);
+        $stmt->bindParam(':longitude', $longitude);
 
-    // Préparation de la requête
-    $stmt = $pdo->prepare($sql);
+        // Exécution de la requête
+        $stmt->execute();
 
-    // Liaison des valeurs aux paramètres
-    $stmt->bindParam(':ip', $ip);
-    $stmt->bindParam(':continent', $continent);
-    $stmt->bindParam(':pays', $country);
-    $stmt->bindParam(':departement', $departement);
-    $stmt->bindParam(':ville', $city);
-    $stmt->bindParam(':region', $region);
-    $stmt->bindParam(':latitude', $latitude);
-    $stmt->bindParam(':longitude', $longitude);
+        echo "Données insérées avec succès.";
 
-    // Exécution de la requête
-    $stmt->execute();
-
-    echo "Données insérées avec succès.";
-
-} catch (PDOException $e) {
-    echo "Erreur : " . $e->getMessage();
+    } catch (PDOException $e) {
+        echo "Erreur : " . $e->getMessage();
+    }
 }
 ?>
